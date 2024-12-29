@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 )
@@ -29,6 +30,15 @@ func incrementCounterReset(w http.ResponseWriter, r *http.Request) {
 	mutex.Unlock()
 }
 
+func printSecret(w http.ResponseWriter, r *http.Request) {
+	env, exists := os.LookupEnv("PRINT_SECRET")
+	if exists {
+		fmt.Fprintf(w, string(env))
+	} else {
+		fmt.Fprintf(w, "No secret set")
+	}
+}
+
 func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
@@ -39,6 +49,8 @@ func main() {
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")
 	})
+
+	http.HandleFunc("/secret", printSecret)
 
 	log.Fatal(http.ListenAndServe(":8081", nil))
 
